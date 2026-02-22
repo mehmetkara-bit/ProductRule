@@ -7,9 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// DbContext ve servisleri ekliyom
-builder.Services.AddDbContext<AppDbContext>(options => 
-           options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// DbContext ve servisleri ekliyorum
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // JSON Döngülerini (Cycle) önlemek için ayar
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
@@ -29,7 +29,45 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+
 app.UseHttpsRedirection();
+
+// 🔹 Seed Data (runtime)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+
+    if (!db.Products.Any())
+    {
+        var product1 = new Product { ProductId = 1, ProductionCountry = "Türkiye", ProductionDate = DateTime.UtcNow };
+        var product2 = new Product { ProductId = 2, ProductionCountry = "Almanya", ProductionDate = DateTime.UtcNow };
+
+        var detail1 = new ProductDetail { ProductId = 1, Color = "Kırmızı", ShippingCountry = "Fransa", Quantity = 100 };
+        var detail2 = new ProductDetail { ProductId = 2, Color = "Mavi", ShippingCountry = "İtalya", Quantity = 50 };
+
+        var test1 = new ProductTest { ProductTestId = 1, TestName = "Dayanıklılık Testi" };
+        var test2 = new ProductTest { ProductTestId = 2, TestName = "Kalite Kontrol" };
+
+        var rule1 = new RuleDefinition
+        {
+            RuleDefinitionId = 1,
+            RuleName = "Kırmızı ürünler Fransa’ya gönderilir",
+            Color = "Kırmızı",
+            ShippingCountry = "Fransa",
+            ProductionCountry = "Türkiye",
+            ProductTestId = 1
+        };
+
+        db.Products.AddRange(product1, product2);
+        db.ProductDetails.AddRange(detail1, detail2);
+        db.ProductTests.AddRange(test1, test2);
+        db.RuleDefinitions.Add(rule1);
+
+        db.SaveChanges();
+    }
+}
+
 
 /*// Rule ekleme endpoint
 app.MapPost("/rule-definitions", async (RuleDefinitionDto dto, AppDbContext db) =>

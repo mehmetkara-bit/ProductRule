@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProductRule.Entities;
+
 
 public class AppDbContext : DbContext
 {
@@ -23,12 +23,12 @@ public class AppDbContext : DbContext
 
             entity.HasOne(e => e.Detail)
                   .WithOne()
-                  .HasForeignKey<ProductDetail>(d => d.ProductNo);
+                  .HasForeignKey<ProductDetail>(d => d.ProductId);
         });
 
         modelBuilder.Entity<ProductDetail>(entity =>
         {
-            entity.HasKey(e => e.ProductNo);
+            entity.HasKey(e => e.ProductId);
         });
 
         // RuleDefinition

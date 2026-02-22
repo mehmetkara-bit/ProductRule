@@ -1,8 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
-using ProductRule.Data;
-using ProductRule.Entities;
-
 
 public class RuleMatchWorker : BackgroundService {
     private readonly IServiceProvider _services;
