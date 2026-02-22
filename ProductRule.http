@@ -1,0 +1,6 @@
+@ProductRule_HostAddress = http://localhost:5108
+
+GET {{ProductRule_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
