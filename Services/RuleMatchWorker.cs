@@ -45,8 +45,8 @@ public class RuleMatchWorker : BackgroundService {
     }
 
     private bool IsMatch(Product p, RuleDefinition r) {
-        return (string.IsNullOrEmpty(r.Color) || p.Detail.Color == r.Color) &&
-               (string.IsNullOrEmpty(r.ShippingCountry) || p.Detail.ShippingCountry == r.ShippingCountry) &&
+        return (string.IsNullOrEmpty(r.Color) || p.Detail?.Color == r.Color) &&
+               (string.IsNullOrEmpty(r.ShippingCountry) || p.Detail?.ShippingCountry == r.ShippingCountry) &&
                (string.IsNullOrEmpty(r.ProductionCountry) || p.ProductionCountry == r.ProductionCountry);
     }
 }
