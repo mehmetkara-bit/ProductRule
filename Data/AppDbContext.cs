@@ -1,50 +1,69 @@
 using Microsoft.EntityFrameworkCore;
+using ProductRule.Entities;
 
-namespace ProductRule.Data
+public class AppDbContext : DbContext
 {
-    public class AppDbContext : DbContext
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    }
+
+    // DbSet tanımları
+    public DbSet<Product> Products { get; set; }
+    public DbSet<ProductDetail> ProductDetails { get; set; }
+    public DbSet<RuleDefinition> RuleDefinitions { get; set; }
+    public DbSet<ProductRuleMatch> ProductRuleMatches { get; set; }
+    public DbSet<ProductTest> ProductTests { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Product ↔ ProductDetail (1-1 ilişki)
+        modelBuilder.Entity<Product>(entity =>
         {
-        }
+            entity.HasKey(e => e.ProductId);
 
-        public DbSet<Product> Products { get; set; }
-        public DbSet<ProductDetail> ProductDetails { get; set; }
-        public DbSet<RuleDefinition> Rules { get; set; }
-        public DbSet<ProductRuleMatch> ProductRuleMatches { get; set; }
-        public DbSet<ProductTest> ProductTests { get; set; }
+            entity.HasOne(e => e.Detail)
+                  .WithOne()
+                  .HasForeignKey<ProductDetail>(d => d.ProductNo);
+        });
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        modelBuilder.Entity<ProductDetail>(entity =>
         {
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity.HasKey(e => e.ProductNo);
-                entity.HasOne(e => e.Detail)
-                    .WithOne()
-                    .HasForeignKey<ProductDetail>(e => e.ProductNo);
-            });
+            entity.HasKey(e => e.ProductNo);
+        });
 
-            modelBuilder.Entity<ProductDetail>(entity =>
-            {
-                entity.HasKey(e => e.ProductNo);
-            });
+        // RuleDefinition
+        modelBuilder.Entity<RuleDefinition>(entity =>
+        {
+            entity.HasKey(e => e.RuleDefinitionId);
 
-            modelBuilder.Entity<RuleDefinition>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
+            entity.HasOne(r => r.ProductTest)
+                  .WithMany()
+                  .HasForeignKey(r => r.ProductTestId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
 
-            modelBuilder.Entity<ProductRuleMatch>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
+        // ProductRuleMatch
+        modelBuilder.Entity<ProductRuleMatch>(entity =>
+        {
+            entity.HasKey(e => e.ProductRuleMatchId);
 
-            modelBuilder.Entity<ProductTest>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
+            entity.HasOne(m => m.Product)
+                  .WithMany()
+                  .HasForeignKey(m => m.ProductId)
+                  .OnDelete(DeleteBehavior.Cascade);
 
-            base.OnModelCreating(modelBuilder);
-        }
+            entity.HasOne(m => m.RuleDefinition)
+                  .WithMany()
+                  .HasForeignKey(m => m.RuleDefinitionId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ProductTest
+        modelBuilder.Entity<ProductTest>(entity =>
+        {
+            entity.HasKey(e => e.ProductTestId);
+        });
+
+        base.OnModelCreating(modelBuilder);
     }
 }
